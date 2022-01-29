@@ -1,51 +1,22 @@
 # Program: Hangman: Pokemon Edition
 # Start Date: 1/25/22
 # End Date: ???
-'''
-**************************
-*-----H-A-N-G-M-A-N------*
-*------------------------*
-*----=========-----------*
-*----| |=====|-----------*
-*----| |----VVV----------*
-*----| |---(O_0)---------*
-*----| |---o-|-o---------*
-*----| |-----|-----------*
-*----| |----/-\----------*
-*----| |-----------------*
-*---==============-------*
-*--_ _ _ _ _ _ _ _ _ _---*
-*------------------------*
-*------------------------*
-**************************
-'''
-# constraints
-# max word length = 10
+
 import random
-# store words in a array
+
+# store words in array
 words = ['Bulbasaur', 'Ivysaur', 'Venusaur', 'Charmander', 'Charmeleon',
         'Charizard']
-#random_word = words[random.randrange(len(words))]
-# ***** testing bulbasaur
-rand_w = words[0]
-W_LEN = len(rand_w)
-choice = 'Y' 
-W_IDX = 12
-# word count limit: 1 - 10. indices: 0-9
-blank_tiles = [
-'*-----------_------------*',
-'*----------_ _-----------*',
-'*---------_ _ _----------*',
-'*--------_ _ _ _---------*',
-'*-------_ _ _ _ _--------*',
-'*------_ _ _ _ _ _-------*',
-'*-----_ _ _ _ _ _ _------*',
-'*----_ _ _ _ _ _ _ _-----*',
-'*---_ _ _ _ _ _ _ _ _----*',
-'*--_ _ _ _ _ _ _ _ _ _---*'
-        ]
-# empty, 1. head, 2. body, 3. left leg, 4. right leg, 
-# 5. left arm, 6. right arm
+# random generate a word from word array
+w_rand = words[random.randrange(len(words))] # random generated word from list ***** testing bulbasaur
+W_LEN = len(w_rand) # length of chosen word
+W_IDX = 12 # row which contains word on game board
+revealed_count = 0
+choice = 'Y' # player choice to start new game
+lives_remaining = 6
+
+
+# game board
 board = [
 '**************************',
 '*-----H-A-N-G-M-A-N------*',
@@ -65,93 +36,115 @@ board = [
 '**************************'
 ]
 
-BOARD_R_LEN = len(board[0])
-lives = [
-''' 
-*----| |----VVV----------*
-*----| |---(O_0)---------*
-''',
-''' 
-*----| |-----|-----------*
-*----| |-----|-----------*
-''', 
-''' 
-*----| |---o-|-----------*
-''', 
-''' 
-*----| |---o-|-o---------*
-''', 
-''' 
-*----| |----/------------*
-''', 
-''' 
-*----| |----/-\----------*
-'''] 
+# word row
+blank_tiles = [
+'*-----------_------------*',
+'*----------_ _-----------*',
+'*---------_ _ _----------*',
+'*--------_ _ _ _---------*',
+'*-------_ _ _ _ _--------*',
+'*------_ _ _ _ _ _-------*',
+'*-----_ _ _ _ _ _ _------*',
+'*----_ _ _ _ _ _ _ _-----*',
+'*---_ _ _ _ _ _ _ _ _----*',
+'*--_ _ _ _ _ _ _ _ _ _---*'
+        ]
 
-# prompt user to play new game
+# lives: head -> body -> legs x2  -> arms x2
+# indices: head = 0,1; body = 2,3; 
+# legL = 6; legR = 7;
+# armL = 4; armR = 5
+
+lives = [
+'*----| |----VVV----------*', # head 0
+'*----| |---(O_0)---------*', # head 1
+'*----| |-----|-----------*', # body 2 
+'*----| |---o-|-----------*', # armL 3
+'*----| |---o-|-o---------*', # armR 4
+'*----| |----/------------*', # legL 5
+'*----| |----/-\----------*'  # legR 6
+] 
+BOARD_R_LEN = len(board[0])
+board[W_IDX] = blank_tiles[W_LEN - 1] # mod board based on word length
+# starting position for this rand word
+first_loc = int((BOARD_R_LEN - (W_LEN * 2)) / 2)
+
+# helper debug functions
+def print_debug():
+    # debug info
+    print('Debug Info:')
+    print('Random word:', w_rand)
+    print('Word length:', W_LEN)
+    print('Blank tiles row length:', len(blank_tiles[0]))
+    print('Board row length:', len(board[0]))
+    print('Word row', board[W_IDX])
+    print('first index tile loc', first_loc)
+
+def print_board():
+    for row in board:
+        print(row)
+def draw_man():
+    if lives_remaining == 6:
+        # draw head; i = 5,6
+        board[5] = lives[0]
+        board[6] = lives[1]
+    elif lives_remaining == 5:
+        # draw body
+        board[7] = lives[2]
+        board[8] = lives[2]
+
+    elif lives_remaining == 4:
+        # draw left leg
+        board[9] = lives[5]
+
+    elif lives_remaining == 3:
+        # draw right leg
+        board[9] = lives[6]
+
+    elif lives_remaining == 2:
+        # draw left arm 
+        board[7] = lives[3]
+
+    elif lives_remaining == 1:
+        # draw right arm 
+        board[7] = lives[4]
+
+# main menu: prompt user to play new game
 while choice is 'N':
     choice = input('Ready to play Hangman? (Y/N))\n')
 
-# start a new game
+# new game has started
 print('Game Started.')
-# random generate a word from word array
-#print('random word', rand_w)
-#print('word length', W_LEN)
-#print('underscores row length', len(blank_tiles[0]))
-#print('game_board row length', len(board[0]))
+print_board()
 
-# note: row index 12 contains word insertion location
+# keep asking for letter guesses
+while lives_remaining > 0 and revealed_count is not W_LEN:
+    # prompt user to input a letter guess
+    guess = input('Guess a letter (A-Z):\n')
+    
+    if str(guess) in str(w_rand):
+        # iterate through letters of bulbasaur (find insertion position)
+        for char_idx in range(0, W_LEN):
+            curr_letter = w_rand[char_idx].lower()
+            # if random_word contains that letter
+            if guess  ==  curr_letter:
+                # insertion location for chosen letter (guess)
+                ins_i = first_loc + (char_idx * 2)
+                # draw letter on empty tile
+                board[W_IDX] = board[W_IDX][:ins_i] + guess + board[W_IDX][ins_i+1:]
+                revealed_count += 1
+    else:     
+        draw_man() # draw a limb on game board
+        lives_remaining -= 1
 
-# change word count on the board
-# modify the board based on word length
-board[W_IDX] = blank_tiles[W_LEN - 1]
+    print_board()
 
-# print empty board
-for row in board:
-    print(row)
-
-
-# prompt user to input a letter guess
-guess = input('Guess a letter (A-Z):\n')
-
-# if random_word contains that letter, fill in underscore locations
-
-# ****example test case:*****
-# random_word: bulbasaur
-# word length: 9
-# first guess: a
-# fill in index: 4, 6 with letter a
-
-
-
-
-
-# iterate through letters of bulbasaur
-for letter_idx in range(0, len(rand_w)):
-    if guess is rand_w[letter_idx]:
-        # idx = 4 is bulbAsaur
-        # idx = 12 is A insert loc
-        # first loc = 
-       # print('phase: correct guess')
-        first_loc = (BOARD_R_LEN - (W_LEN * 2)) / 2
-        first_loc = int(first_loc)
-        ins_i = first_loc + (letter_idx * 2)
-       # print('first index tile loc', first_loc)
-        board[W_IDX] = board[W_IDX][:ins_i] + guess + board[W_IDX][ins_i+1:]
-       # print('modded word row', board[W_IDX])
-
-
-# else draw a body part
-for row in board:
-    print(row)
+# no more lives or all hidden tiles are revealed
+if revealed_count is W_LEN:
+    print('You win!')
+else:
+    print('You lose!')
+    print('Answer:', w_rand)
 
 
 
-
-
-
-# reset the game
-# randomly select a word for current game 
-# have a certain amount of "lives"
-# draw a limb (wrong letter guess)
-# reveal an underscore (correct letter guess)
