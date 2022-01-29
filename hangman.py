@@ -14,6 +14,7 @@ W_IDX = 12 # row which contains word on game board
 revealed_count = 0
 choice = 'Y' # player choice to start new game
 lives_remaining = 6
+guesses = ''
 
 
 # game board
@@ -79,6 +80,9 @@ def print_debug():
     print('Board row length:', len(board[0]))
     print('Word row', board[W_IDX])
     print('first index tile loc', first_loc)
+def print_guesses():
+    print('Guessed Letters:')
+    print(guesses)
 
 def print_board():
     for row in board:
@@ -121,6 +125,7 @@ print_board()
 while lives_remaining > 0 and revealed_count is not W_LEN:
     # prompt user to input a letter guess
     guess = input('Guess a letter (A-Z):\n')
+    guesses = guesses + ' ' + guess
     
     if str(guess) in str(w_rand):
         # iterate through letters of bulbasaur (find insertion position)
@@ -138,6 +143,8 @@ while lives_remaining > 0 and revealed_count is not W_LEN:
         lives_remaining -= 1
 
     print_board()
+    print_guesses()
+
 
 # no more lives or all hidden tiles are revealed
 if revealed_count is W_LEN:
